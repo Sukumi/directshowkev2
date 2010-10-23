@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{55B7EE25-D9F0-4EEB-9F65-C39BEDF1845D}</ProjectGuid>
+    <RootNamespace>DSK20</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <TargetExt>.dll</TargetExt>
+    <IncludePath>C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;C:\Program Files (x86)\Java\jdk1.6.0_20\include\win32;C:\Program Files (x86)\Java\jdk1.6.0_20\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\lib;C:\Program Files\Microsoft SDKs\Windows\v7.0\Lib;C:\Program Files (x86)\Java\jdk1.6.0_20\lib</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <MultiProcessorCompilation>false</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>ole32.lib;strmiids.lib;jawt.lib;mfuuid.lib</AdditionalDependencies>
+      <ShowProgress>LinkVerbose</ShowProgress>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="com_kps_dsk_DSKController.cpp" />
+    <ClCompile Include="DSKController.cpp" />
+    <ClCompile Include="DSKInitParameters.cpp" />
+    <ClCompile Include="DSKLogger.cpp" />
+    <ClCompile Include="DSKUtilities.cpp" />
+    <ClCompile Include="DSUtilities.cpp" />
+    <ClCompile Include="DSVideoRenderer.cpp" />
+    <ClCompile Include="EVRVideoRenderer.cpp" />
+    <ClCompile Include="JNI.cpp" />
+    <ClCompile Include="VMR9VideoRenderer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="com_kps_dsk_DSKController.h" />
+    <ClInclude Include="DSKController.h" />
+    <ClInclude Include="DSKInitParameters.h" />
+    <ClInclude Include="DSKLogger.h" />
+    <ClInclude Include="DSKUtilities.h" />
+    <ClInclude Include="DSUtilities.h" />
+    <ClInclude Include="DSVideoRenderer.h" />
+    <ClInclude Include="EVRVideoRenderer.h" />
+    <ClInclude Include="JNI.h" />
+    <ClInclude Include="VMR9VideoRenderer.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
