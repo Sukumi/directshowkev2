@@ -1,0 +1,21 @@
+﻿Build started 19/06/2010 10:13:25.
+     1>Project "C:\Users\KPS\documents\visual studio 2010\Projects\DSK2.0\DSK2.0\DSK2.0.vcxproj" on node 2 (build target(s)).
+     1>InitializeBuildStatus:
+         Touching "Release\DSK2.0.unsuccessfulbuild".
+       ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /Zi /nologo /W3 /WX- /O2 /Oi /Oy- /GL /D _MBCS /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Release\\" /Fd"Release\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt com_kps_dsk_DSKController.cpp DSKController.cpp DSKLogger.cpp DSKUtilities.cpp JNI.cpp
+         com_kps_dsk_DSKController.cpp
+     1>c:\users\kps\documents\visual studio 2010\projects\dsk2.0\dsk2.0\com_kps_dsk_DSKController.h(2): fatal error C1083: Cannot open include file: 'jni.h': No such file or directory
+         DSKController.cpp
+     1>c:\users\kps\documents\visual studio 2010\projects\dsk2.0\dsk2.0\DSKController.h(6): fatal error C1083: Cannot open include file: 'jni.h': No such file or directory
+         DSKLogger.cpp
+     1>c:\users\kps\documents\visual studio 2010\projects\dsk2.0\dsk2.0\DSKLogger.h(1): fatal error C1083: Cannot open include file: 'jni.h': No such file or directory
+         DSKUtilities.cpp
+     1>c:\users\kps\documents\visual studio 2010\projects\dsk2.0\dsk2.0\DSKUtilities.h(1): fatal error C1083: Cannot open include file: 'jni.h': No such file or directory
+         JNI.cpp
+     1>c:\users\kps\documents\visual studio 2010\projects\dsk2.0\dsk2.0\JNI.h(1): fatal error C1083: Cannot open include file: 'jni.h': No such file or directory
+     1>Done Building Project "C:\Users\KPS\documents\visual studio 2010\Projects\DSK2.0\DSK2.0\DSK2.0.vcxproj" (build target(s)) -- FAILED.
+
+Build FAILED.
+
+Time Elapsed 00:00:04.37
