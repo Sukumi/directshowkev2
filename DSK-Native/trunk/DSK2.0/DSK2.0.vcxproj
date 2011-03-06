@@ -25,8 +25,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <TargetExt>.dll</TargetExt>
-    <IncludePath>C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;C:\Program Files (x86)\Java\jdk1.6.0_20\include\win32;C:\Program Files (x86)\Java\jdk1.6.0_20\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\lib;C:\Program Files\Microsoft SDKs\Windows\v7.0\Lib;C:\Program Files (x86)\Java\jdk1.6.0_20\lib</LibraryPath>
+    <IncludePath>C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;C:\Program Files (x86)\Java\jdk1.6.0_23\include\win32;C:\Program Files (x86)\Java\jdk1.6.0_23\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\lib;C:\Program Files\Microsoft SDKs\Windows\v7.0\Lib;C:\Program Files (x86)\Java\jdk1.6.0_23\lib</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

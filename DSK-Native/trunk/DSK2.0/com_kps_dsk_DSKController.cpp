@@ -26,7 +26,6 @@ DSKController* getController(JNIEnv* env, jobject jController) {
 	jint nativeId = env->CallIntMethod(jController, getNativeIdMethod);
 	std::map<jint, DSKController*>::iterator it = controllers.find(nativeId);
 	if(it == controllers.end()) {
-		DSKUtilities::throwJavaDSKException(env, "Could not find a corresponding DSKController");
 		return NULL;
 	}
 	return it->second;
@@ -122,20 +121,20 @@ JNIEXPORT void JNICALL Java_com_kps_dsk_DSKController_nativeStaticInitialise
 * Signature: (Lcom/kps/dsk/DSKInitParameters;Lcom/kps/dsk/DSKCanvas;)V
 */
 JNIEXPORT void JNICALL Java_com_kps_dsk_DSKController_nativeInitialise
-	(JNIEnv* env, jobject thisObject, jobject jInitParameters, jobject canvas) {
+	(JNIEnv* env, jobject jController, jobject jInitParameters, jobject canvas) {
 		DSKLogger::log("Entering Java_com_kps_dsk_DSKController_nativeInitialise");
 
-		jint nativeId = env->CallIntMethod(thisObject, getNativeIdMethod);
+		jint nativeId = env->CallIntMethod(jController, getNativeIdMethod);
 		if (env->ExceptionCheck()) {
 			// If calling the method throws a Java Exception, return now and let Java handle it.
 			return;
 		}
 
 		//Check that a DSKController has not already been created for the given nativeId.
-		std::map<jint, DSKController*>::iterator it = controllers.find(nativeId);
-		if(it != controllers.end()) {
+		DSKController* controller = getController(env, jController);
+		if (controller != NULL) {
 			DSKUtilities::throwJavaDSKException(env, "DSKController already created");
-			return;
+			return ;
 		}
 
 		JAWT awt;
@@ -180,7 +179,7 @@ JNIEXPORT void JNICALL Java_com_kps_dsk_DSKController_nativeInitialise
 		JavaVM* vm = NULL;
 		env->GetJavaVM(&vm);
 
-		jobject jController = env->NewGlobalRef(thisObject);
+		jobject jControllerRef = env->NewGlobalRef(jController);
 
 		DSKInitParameters* initParameters = createInitParameters(env, jInitParameters);
 		if(initParameters == NULL) {
@@ -195,19 +194,12 @@ JNIEXPORT void JNICALL Java_com_kps_dsk_DSKController_nativeInitialise
 		awt.FreeDrawingSurface(surface);
 
 		try {
-			DSKController* controller = new DSKController(initParameters, hwnd, vm, jController);
+			DSKController* controller = new DSKController(initParameters, hwnd, vm, jControllerRef);
 			controllers.insert(std::make_pair(nativeId, controller));
 		} catch (std::exception e) {
-			//surface->FreeDrawingSurfaceInfo(surfaceInfo);
-			//surface->Unlock(surface);
-			//awt.FreeDrawingSurface(surface);
 			DSKUtilities::throwJavaDSKException(env, e.what());
 			return;
 		}
-
-		//surface->FreeDrawingSurfaceInfo(surfaceInfo);
-		//surface->Unlock(surface);
-		//awt.FreeDrawingSurface(surface);
 
 		DSKLogger::log("Completed Java_com_kps_dsk_DSKController_nativeInitialise");
 }
@@ -218,15 +210,14 @@ JNIEXPORT void JNICALL Java_com_kps_dsk_DSKController_nativeInitialise
 * Signature: ()J
 */
 JNIEXPORT jlong JNICALL Java_com_kps_dsk_DSKController_nativeGetDuration
-	(JNIEnv* env, jobject thisObject) {
-		jint nativeId = env->CallIntMethod(thisObject, getNativeIdMethod);
-		std::map<jint, DSKController*>::iterator it = controllers.find(nativeId);
-		if(it == controllers.end()) {
-			DSKUtilities::throwJavaDSKException(env, "DSKController not created");
+	(JNIEnv* env, jobject jController) {
+		DSKController* controller = getController(env, jController);
+		if (controller == NULL) {
+			DSKUtilities::throwJavaDSKException(env, "Could not find a corresponding DSKController");
 			return NULL;
 		}
 		try {
-			return it->second->getDuration();
+			return controller->getDuration();
 		} catch (std::exception e) {
 			DSKUtilities::throwJavaDSKException(env, e.what());
 			return NULL;
@@ -239,15 +230,14 @@ JNIEXPORT jlong JNICALL Java_com_kps_dsk_DSKController_nativeGetDuration
 * Signature: ()J
 */
 JNIEXPORT jlong JNICALL Java_com_kps_dsk_DSKController_nativeGetTime
-	(JNIEnv* env, jobject thisObject) {
-		jint nativeId = env->CallIntMethod(thisObject, getNativeIdMethod);
-		std::map<jint, DSKController*>::iterator it = controllers.find(nativeId);
-		if(it == controllers.end()) {
-			DSKUtilities::throwJavaDSKException(env, "DSKController not created");
+	(JNIEnv* env, jobject jController) {
+		DSKController* controller = getController(env, jController);
+		if (controller == NULL) {
+			DSKUtilities::throwJavaDSKException(env, "Could not find a corresponding DSKController");
 			return NULL;
 		}
 		try {
-			return it->second->getTime();
+			return controller->getTime();
 		} catch (std::exception e) {
 			DSKUtilities::throwJavaDSKException(env, e.what());
 			return NULL;
@@ -260,8 +250,12 @@ JNIEXPORT jlong JNICALL Java_com_kps_dsk_DSKController_nativeGetTime
 * Signature: (J)V
 */
 JNIEXPORT void JNICALL Java_com_kps_dsk_DSKController_nativeSetTime
-	(JNIEnv* env, jobject thisObject, jlong time) {
-		DSKController* controller = getController(env, thisObject);
+	(JNIEnv* env, jobject jController, jlong time) {
+		DSKController* controller = getController(env, jController);
+		if (controller == NULL) {
+			DSKUtilities::throwJavaDSKException(env, "Could not find a corresponding DSKController");
+			return;
+		}
 		try {
 			controller->setTime(time);
 		} catch (std::exception e) {
@@ -276,8 +270,12 @@ JNIEXPORT void JNICALL Java_com_kps_dsk_DSKController_nativeSetTime
 * Signature: (II)J
 */
 JNIEXPORT void JNICALL Java_com_kps_dsk_DSKController_nativeSetSize
-	(JNIEnv* env, jobject thisObject, jint width, jint height) {
-		DSKController* controller = getController(env, thisObject);
+	(JNIEnv* env, jobject jController, jint width, jint height) {
+		DSKController* controller = getController(env, jController);
+		if (controller == NULL) {
+			DSKUtilities::throwJavaDSKException(env, "Could not find a corresponding DSKController");
+			return;
+		}
 		try {
 			controller->setSize(width, height);
 		} catch (std::exception e) {
@@ -292,8 +290,12 @@ JNIEXPORT void JNICALL Java_com_kps_dsk_DSKController_nativeSetSize
 * Signature: ()V
 */
 JNIEXPORT void JNICALL Java_com_kps_dsk_DSKController_nativePlay
-	(JNIEnv* env, jobject thisObject) {
-		DSKController* controller = getController(env, thisObject);
+	(JNIEnv* env, jobject jController) {
+		DSKController* controller = getController(env, jController);
+		if (controller == NULL) {
+			DSKUtilities::throwJavaDSKException(env, "Could not find a corresponding DSKController");
+			return;
+		}
 		try {
 			controller->play();
 		} catch (std::exception e) {
@@ -308,8 +310,12 @@ JNIEXPORT void JNICALL Java_com_kps_dsk_DSKController_nativePlay
 * Signature: ()V
 */
 JNIEXPORT void JNICALL Java_com_kps_dsk_DSKController_nativePause
-	(JNIEnv* env, jobject thisObject) {
-		DSKController* controller = getController(env, thisObject);
+	(JNIEnv* env, jobject jController) {
+		DSKController* controller = getController(env, jController);
+		if (controller == NULL) {
+			DSKUtilities::throwJavaDSKException(env, "Could not find a corresponding DSKController");
+			return;
+		}
 		try {
 			controller->pause();
 		} catch (std::exception e) {
@@ -324,8 +330,12 @@ JNIEXPORT void JNICALL Java_com_kps_dsk_DSKController_nativePause
 * Signature: ()V
 */
 JNIEXPORT void JNICALL Java_com_kps_dsk_DSKController_nativeStop
-	(JNIEnv* env, jobject thisObject) {
-		DSKController* controller = getController(env, thisObject);
+	(JNIEnv* env, jobject jController) {
+		DSKController* controller = getController(env, jController);
+		if (controller == NULL) {
+			DSKUtilities::throwJavaDSKException(env, "Could not find a corresponding DSKController");
+			return;
+		}
 		try {
 			controller->stop();
 		} catch (std::exception e) {
@@ -340,7 +350,7 @@ JNIEXPORT void JNICALL Java_com_kps_dsk_DSKController_nativeStop
 * Signature: (Lcom/kps/dsk/DSKCanvas;)V
 */
 JNIEXPORT void JNICALL Java_com_kps_dsk_DSKController_nativePaint
-	(JNIEnv* env, jobject thisObject, jobject canvas) {
+	(JNIEnv* env, jobject jController, jobject canvas) {
 		JAWT awt;
 		JAWT_DrawingSurface* surface;
 		JAWT_DrawingSurfaceInfo* surfaceInfo;
@@ -380,12 +390,21 @@ JNIEXPORT void JNICALL Java_com_kps_dsk_DSKController_nativePaint
 
 		HDC hdc = windowsSurfaceInfo->hdc;
 
-		DSKController* controller = getController(env, thisObject);
-
+		DSKController* controller = getController(env, jController);
+		if (controller == NULL) {
+			surface->FreeDrawingSurfaceInfo(surfaceInfo);
+			surface->Unlock(surface);
+			awt.FreeDrawingSurface(surface);
+			DSKUtilities::throwJavaDSKException(env, "Could not find a corresponding DSKController");
+			return;
+		}
 
 		try {
 			controller->paint(hdc);
 		} catch (std::exception e) {
+			surface->FreeDrawingSurfaceInfo(surfaceInfo);
+			surface->Unlock(surface);
+			awt.FreeDrawingSurface(surface);
 			DSKUtilities::throwJavaDSKException(env, e.what());
 			return;
 		}
@@ -401,9 +420,10 @@ JNIEXPORT void JNICALL Java_com_kps_dsk_DSKController_nativePaint
 * Signature: ()Ljava/awt/Dimension;
 */
 JNIEXPORT jobject JNICALL Java_com_kps_dsk_DSKController_nativeGetVideoSize
-	(JNIEnv* env, jobject thisObject) {
-		DSKController* controller = getController(env, thisObject);
+	(JNIEnv* env, jobject jController) {
+		DSKController* controller = getController(env, jController);
 		if (controller == NULL) {
+			DSKUtilities::throwJavaDSKException(env, "Could not find a corresponding DSKController");
 			return NULL;
 		}
 
