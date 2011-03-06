@@ -18,7 +18,7 @@ public final class DSKInitParameters {
     }
 
     private DSVideoRendererType getDefaultVideoRendererType() {
-        if (isWindowsVistaAbove()) {
+        if (isWindowsVistaOrAbove()) {
             return DSVideoRendererType.EVR;
         } else {
             return DSVideoRendererType.VMR9;
@@ -31,8 +31,8 @@ public final class DSKInitParameters {
 
     public void setVideoRendererType(final DSVideoRendererType videoRendererTypeIn) {
         Validate.notNull(videoRendererTypeIn, "videoRendererType");
-        if (!isWindowsVistaAbove() && (videoRendererTypeIn == DSVideoRendererType.EVR)) {
-            throw new IllegalArgumentException("DSVideoRendererType.EVR can only be used on Windows Vista and above");
+        if (!isWindowsVistaOrAbove() && (videoRendererTypeIn == DSVideoRendererType.EVR)) {
+            throw new IllegalArgumentException("DSVideoRendererType.EVR can only be used on Windows Vista or above");
         }
         this.videoRendererType = videoRendererTypeIn;
     }
@@ -50,7 +50,7 @@ public final class DSKInitParameters {
         this.graphType = graphTypeIn;
     }
 
-    private boolean isWindowsVistaAbove() {
+    private boolean isWindowsVistaOrAbove() {
         final String os = System.getProperty("os.name");
         return ((os.indexOf("Windows Vista") != -1) || (os.indexOf("Windows 7") != -1));
     }
