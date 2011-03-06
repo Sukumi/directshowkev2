@@ -1,6 +1,7 @@
 package com.kps.dsk;
 
 import java.awt.Canvas;
+import java.util.List;
 
 public interface IDSKController {
 
@@ -25,4 +26,8 @@ public interface IDSKController {
     Canvas getCanvas();
 
     void addListener(IDSKListener listener);
+
+    void removeListener(IDSKListener listener);
+
+    List<IDSKListener> getListeners();
 }

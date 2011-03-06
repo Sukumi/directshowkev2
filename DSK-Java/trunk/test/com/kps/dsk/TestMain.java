@@ -14,7 +14,7 @@ public class TestMain {
             public void run() {
                 final JFrame frame = new JFrame();
                 frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                final int x = 2, y = 2;
+                final int x = 5, y = 5;
                 frame.setLayout(new GridLayout(x, y));
                 final IDSKController[] controllers = new IDSKController[x * y];
                 for (int i = 0; i < x * y; i++) {

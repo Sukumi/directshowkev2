@@ -3,7 +3,6 @@ package com.kps.dsk;
 import java.awt.Canvas;
 import java.awt.Dimension;
 import java.io.File;
-import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -44,7 +43,7 @@ public final class DSKController implements IDSKController {
         Validate.notNull(initParameters, "initParameters");
         this.nativeId = getNextNativeId();
         this.canvas = new DSKCanvas(createCanvasListener(initParameters));
-        this.state = DSKState.STOPPED;
+        this.state = DSKState.UNINITIALISED;
         this.stopTime = Double.MAX_VALUE;
         this.listeners = new ArrayList<IDSKListener>();
     }
@@ -60,19 +59,18 @@ public final class DSKController implements IDSKController {
 
                     @Override
                     public void run() {
-                        controller.initialise(initParameters, canvas);
-                        canvas.setPreferredSize(getVideoSize());
-                        System.out.println("videoSize = " + getVideoSize());
+                        try {
+                            controller.initialise(initParameters, canvas);
+                            controller.setState(DSKState.STOPPED);
+                            canvas.setPreferredSize(getVideoSize());
+                        } catch (final Exception exception) {
+                            if (DSKController.LOGGER.isLoggable(Level.SEVERE)) {
+                                DSKController.LOGGER.log(Level.SEVERE, "Exception caught in initialise Thread",
+                                        exception);
+                            }
+                        }
                     };
                 };
-                initialiseThread.setUncaughtExceptionHandler(new UncaughtExceptionHandler() {
-
-                    public void uncaughtException(final Thread t, final Throwable e) {
-                        if (DSKController.LOGGER.isLoggable(Level.SEVERE)) {
-                            DSKController.LOGGER.log(Level.SEVERE, "Exception caught in initialise Thread", e);
-                        }
-                    }
-                });
                 initialiseThread.start();
 
             }
@@ -119,6 +117,10 @@ public final class DSKController implements IDSKController {
     }
 
     public double getDuration() {
+        if (this.state == DSKState.UNINITIALISED) {
+            return 0.0;
+        }
+
         final long duration;
         synchronized (DSKController.class) {
             duration = nativeGetDuration();
@@ -127,6 +129,10 @@ public final class DSKController implements IDSKController {
     }
 
     public double getTime() {
+        if (this.state == DSKState.UNINITIALISED) {
+            return 0.0;
+        }
+
         final long time;
         synchronized (DSKController.class) {
             time = nativeGetTime();
@@ -135,6 +141,10 @@ public final class DSKController implements IDSKController {
     }
 
     public void setTime(final double time) {
+        if (this.state == DSKState.UNINITIALISED) {
+            return;
+        }
+
         Validate.positive(time, "time");
         synchronized (DSKController.class) {
             nativeSetTime(toDirectShowTime(time));
@@ -146,6 +156,10 @@ public final class DSKController implements IDSKController {
     }
 
     public synchronized void play() {
+        if (this.state == DSKState.UNINITIALISED) {
+            return;
+        }
+
         // Do nothing if state is already PLAYING
         if (this.state != DSKState.PLAYING) {
             synchronized (DSKController.class) {
@@ -159,6 +173,10 @@ public final class DSKController implements IDSKController {
     }
 
     public synchronized void pause() {
+        if (this.state == DSKState.UNINITIALISED) {
+            return;
+        }
+
         // Do nothing if state is already PAUSED
         if (this.state != DSKState.PAUSED) {
             synchronized (DSKController.class) {
@@ -171,6 +189,9 @@ public final class DSKController implements IDSKController {
     }
 
     public synchronized void stop() {
+        if (this.state == DSKState.UNINITIALISED) {
+            return;
+        }
         // Do nothing if state is already STOPPED
         if (this.state != DSKState.STOPPED) {
             synchronized (DSKController.class) {
@@ -228,6 +249,10 @@ public final class DSKController implements IDSKController {
     }
 
     public double getStopTime() {
+        if (this.state == DSKState.UNINITIALISED) {
+            return 0.0;
+        }
+
         return this.stopTime;
     }
 
@@ -237,28 +262,55 @@ public final class DSKController implements IDSKController {
 
     public void setStopTime(final double stopTimeIn) {
         Validate.positive(stopTimeIn, "stopTime");
+
+        if (this.state == DSKState.UNINITIALISED) {
+            return;
+        }
+
         this.stopTime = stopTimeIn;
     }
 
     public void addListener(final IDSKListener listener) {
+        Validate.notNull(listener, "listener");
         synchronized (this.listeners) {
             this.listeners.add(listener);
         }
     }
 
-    public void fireVideoProgressed() {
+    @Override
+    public List<IDSKListener> getListeners() {
+        final List<IDSKListener> copyOfListeners;
         synchronized (this.listeners) {
-            for (final IDSKListener listener : this.listeners) {
-                listener.videoProgressed();
-            }
+            copyOfListeners = new ArrayList<IDSKListener>(this.listeners);
+        }
+        return copyOfListeners;
+    }
+
+    @Override
+    public void removeListener(final IDSKListener listener) {
+        Validate.notNull(listener, "listener");
+        synchronized (this.listeners) {
+            this.listeners.remove(listener);
+        }
+    }
+
+    public void fireVideoProgressed() {
+        final List<IDSKListener> copyOfListeners;
+        synchronized (this.listeners) {
+            copyOfListeners = new ArrayList<IDSKListener>(this.listeners);
+        }
+        for (final IDSKListener listener : copyOfListeners) {
+            listener.videoProgressed();
         }
     }
 
     private void fireStateChanged(final DSKState oldState, final DSKState newState) {
+        final List<IDSKListener> copyOfListeners;
         synchronized (this.listeners) {
-            for (final IDSKListener listener : this.listeners) {
-                listener.stateChanged(oldState, newState);
-            }
+            copyOfListeners = new ArrayList<IDSKListener>(this.listeners);
+        }
+        for (final IDSKListener listener : copyOfListeners) {
+            listener.stateChanged(oldState, newState);
         }
     }
 
