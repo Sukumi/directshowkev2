@@ -55,24 +55,8 @@ public final class DSKController implements IDSKController {
             final DSKController controller = DSKController.this;
 
             public void onAddNotifyCompleted(final DSKCanvas canvas) {
-                final Thread initialiseThread = new Thread() {
-
-                    @Override
-                    public void run() {
-                        try {
-                            controller.initialise(initParameters, canvas);
-                            controller.setState(DSKState.STOPPED);
-                            canvas.setPreferredSize(getVideoSize());
-                        } catch (final Exception exception) {
-                            if (DSKController.LOGGER.isLoggable(Level.SEVERE)) {
-                                DSKController.LOGGER.log(Level.SEVERE, "Exception caught in initialise Thread",
-                                        exception);
-                            }
-                        }
-                    };
-                };
+                final Thread initialiseThread = createInitialiseThread(initParameters, canvas);
                 initialiseThread.start();
-
             }
 
             public void onRemoveNotifyCompleted(final DSKCanvas canvas) {
@@ -80,7 +64,7 @@ public final class DSKController implements IDSKController {
             }
 
             public void onSetBoundsCompleted(final DSKCanvas canvas, final int width, final int height) {
-                this.controller.setSize(width, height);
+                this.controller.setSize(Math.max(0, width), Math.max(0, height));
             }
 
             public void paint(final DSKCanvas canvas) {
@@ -89,7 +73,29 @@ public final class DSKController implements IDSKController {
         };
     }
 
+    private Thread createInitialiseThread(final DSKInitParameters initParameters, final DSKCanvas canvas) {
+        final Thread initialiseThread = new Thread() {
+
+            @Override
+            public void run() {
+                try {
+                    initialise(initParameters, canvas);
+                    canvas.setPreferredSize(getVideoSize());
+                    setState(DSKState.STOPPED);
+                } catch (final Exception exception) {
+                    if (LOGGER.isLoggable(Level.SEVERE)) {
+                        LOGGER.log(Level.SEVERE, "Exception caught in initialise Thread", exception);
+                    }
+                }
+            };
+        };
+        return initialiseThread;
+    }
+
     private void paint(final DSKCanvas canvas) {
+        if (this.state == DSKState.UNINITIALISED) {
+            return;
+        }
 
         synchronized (DSKController.class) {
             nativePaint(canvas);
@@ -97,6 +103,10 @@ public final class DSKController implements IDSKController {
     }
 
     private void setSize(final int width, final int height) {
+        if (this.state == DSKState.UNINITIALISED) {
+            return;
+        }
+
         synchronized (DSKController.class) {
             nativeSetSize(width, height);
         }
@@ -192,6 +202,7 @@ public final class DSKController implements IDSKController {
         if (this.state == DSKState.UNINITIALISED) {
             return;
         }
+
         // Do nothing if state is already STOPPED
         if (this.state != DSKState.STOPPED) {
             synchronized (DSKController.class) {
@@ -212,6 +223,10 @@ public final class DSKController implements IDSKController {
     }
 
     public synchronized void pauseWithoutStoppingThread() {
+        if (this.state == DSKState.UNINITIALISED) {
+            return;
+        }
+
         // Do nothing if state is already PAUSED
         if (this.state != DSKState.PAUSED) {
             synchronized (DSKController.class) {
@@ -243,6 +258,10 @@ public final class DSKController implements IDSKController {
     }
 
     private Dimension getVideoSize() {
+        if (this.state == DSKState.UNINITIALISED) {
+            return new Dimension();
+        }
+
         synchronized (DSKController.class) {
             return nativeGetVideoSize();
         }
